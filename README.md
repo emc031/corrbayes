@@ -4,6 +4,10 @@ Hello.
 This is a small module that finds sensible priors for correlation functions (to be fit using the ``corrfitter`` package)
 in an automatic and pure-Bayesian way.
 
+To get the full documentation, go into this directory and type
+
+``[ firefox | chrome | etc. ] doc/_build/html/index.html``
+
 Traditionally, one would design priors for a correlator fit using some combination of QCD-inspired rules of thumb
 ("the spectrum is separated by about Lambda_QCD" ), and empirical-Bayes type arguments
 (like eyeing the effective mass of correlators averaged over all configurations). While empirical Bayes approaches are often
