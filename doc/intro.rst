@@ -15,7 +15,7 @@ and this makes some people feel on-edge.
 
 This module produces priors in a pure Bayesian way. With a gv.Dataset.Dataset full of correlators ``dset``, you can run
 
-``prior, new_dset = CorrBayes.get_prior( dset, 1, nexp )``
+``prior, new_dset = corrbayes.get_prior( dset, 1, nexp )``
 
 This line will shave off a (randomly chosen) single datapoint for each key (e.g. a correlator for each key on a single configuration),
 and return ``new_dset``, the same as ``dset`` but with that single point taken out. Then that point is used to deduce sensible priors
