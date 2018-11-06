@@ -12,9 +12,9 @@ Traditionally, one would design priors for a correlator fit using some combinati
 ("the spectrum is separated by about Lambda_QCD" ), and empirical-Bayes type arguments
 (like eyeing the effective mass of correlators averaged over all configurations). 
 
-While empirical Bayes approaches are often fine since they approximate a pure Bayesian result, they do *technically* involve double-counting the information avaliable to us, and this makes some people feel on-edge. By double-counting, I mean information from the same data is used to determine both the prior and the posterior distributions, when we're doing this we're on theoretically shaky ground. 
+While empirical Bayes approaches are often fine since they approximate a pure Bayesian result, they do *technically* involve double-counting the information avaliable to us, and this makes some people feel on-edge. By double-counting, I mean information from the same data is used to determine both the prior and the likelihood distributions, when we're doing this we're on theoretically shaky ground. 
 
-This module produces priors in a "pure-Bayesian" way (as opposed to empirical Bayesian), meaning that the prior and posterior distributions come from independant bits of data.
+This module produces priors in a "pure-Bayesian" way (as opposed to empirical Bayesian), meaning that the prior and likelihood distributions are found from independant bits of data.
 
 With a gv.Dataset.Dataset full of correlators ``dset``, you can run
 
