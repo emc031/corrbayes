@@ -24,7 +24,7 @@ for a fit using ``new_dset``. No information from ``new_dset`` has been used to 
 information.
 
 If you are also doing fits to 3-point correlators, this can be handled too. All you need to do is pass an argument into get_priors called
-"currents", this must be a list of strings giving the name you gave the current in your datatag convention (See tag conventions section).
+``currents``, this must be a list of strings giving the name you gave the current in your datatag convention (See tag conventions section).
 
 The second argument of ``get_prior`` in the above code segment gives the number of points to be used for working out priors (therefore also the number of points shaved off the datset). One is fine in many cases, but if your correlators are noisy (e.g. vector mesons), then cranking this up to 10 or 20 would make the process more stable.
 
