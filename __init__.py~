@@ -163,14 +163,21 @@ def dirtyfit(correlator,
     # finding first excited energy
     spectrum = np.mean(
         effective_mass( superav2(excited_correlator) )[ tcut : int(Tlat/2)-tcut ]
-    )
-    spectrum = gv.gvar( spectrum.mean, spectrum.mean - zero_buffer )
+    ) * gv.gvar(1,loosener)
+    spectrum = gv.gvar( zero_buffer/(1-spectrum.sdev/spectrum.mean), 
+                        zero_buffer/(spectrum.mean/spectrum.sdev - 1) )
+    # this transforms spectrum to a gvar that is 1 sigma
+    # away from zero_buffer with the same fractional sdev
 
     # finding first excited state amplitude
     spectrum_amps = np.mean(
         amp_superav2( excited_correlator )[ tcut : int(Tlat/2)-tcut ]
-    )
-    spectrum_amps = gv.gvar( spectrum_amps.mean, spectrum_amps.mean - zero_buffer )
+    ) * gv.gvar(1,loosener)
+    spectrum_amps = gv.gvar( zero_buffer/(1-spectrum_amps.sdev/spectrum_amps.mean), 
+                        zero_buffer/(spectrum_amps.mean/spectrum_amps.sdev - 1) )
+    # this transforms spectrum_amps to a gvar that is 1 sigma
+    # away from zero_buffer with the same fractional sdev
+
 
     # building key
     try:
@@ -355,7 +362,7 @@ def get_prior(dset,
         # see if this key corresponds to a 3pt correlator, and save current name
         for current_i in currents:
             if re.search(current_i,key):
-                this_current = current_i[1:-1] # .J. -> J
+                this_current = current_i
 
         # do single correlator fit
         if 'this_current' in locals():

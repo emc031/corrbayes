@@ -15,7 +15,7 @@ and this makes some people feel on-edge.
 
 This module produces priors in a pure Bayesian way. With a gv.Dataset.Dataset full of correlators ``dset``, you can run
 
-``prior, new_dset = corrbayes.get_prior( dset, 1, nexp )``
+``prior, new_dset = CorrBayes.get_prior( dset, 1, nexp )``
 
 This line will shave off a (randomly chosen) single datapoint for each key (e.g. a correlator for each key on a single configuration),
 and return ``new_dset``, the same as ``dset`` but with that single point taken out. Then that point is used to deduce sensible priors
@@ -28,5 +28,5 @@ If you are also doing fits to 3-point correlators, this can be handled too. All 
 The second argument of ``get_prior`` in the above code segment gives the number of points to be used for working out priors (therefore also the number of points shaved off the datset). One is fine in many cases, but if your correlators are noisy (e.g. vector mesons), 
 then cranking this up to 10 or 20 would make the process more stable.
 
-I should also mention; this only works for single source/sink combinations, e.g. if you're planning on using a matrix of smearings,
+I should also mention; this only works for single source/sink combinations at the moment, e.g. if you're planning on using a matrix of smearings,
 this won't work properly. If you want to use this, let me know and I'll adapt the code so it can handle that kind of thing.

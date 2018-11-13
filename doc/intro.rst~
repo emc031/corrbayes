@@ -17,7 +17,7 @@ This module produces priors in a pure Bayesian way. With a gv.Dataset.Dataset fu
 
 ``prior, new_dset = CorrBayes.get_prior( dset, 1, nexp )``
 
-This line will shave off a single datapoint for each key (e.g. a correlator for each key on a single configuration),
+This line will shave off a (randomly chosen) single datapoint for each key (e.g. a correlator for each key on a single configuration),
 and return ``new_dset``, the same as ``dset`` but with that single point taken out. Then that point is used to deduce sensible priors
 for a fit using ``new_dset``. No information from ``new_dset`` has been used to determine these priors, hence no double-counting of
 information.

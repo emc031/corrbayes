@@ -1,4 +1,3 @@
-
 Hello.
 
 This is a small module that finds sensible priors for correlation functions (to be fit using the ``corrfitter`` package)

@@ -12,6 +12,8 @@ import gvar as gv
 import random
 from math import isnan
 
+default_loosener=0.5
+default_zerobuffer=0.1
 
 def invertosc(c):
     """
@@ -119,8 +121,8 @@ def dirtyfit(correlator,
              key,
 
              tcut=None,
-             loosener=0.3,
-             zero_buffer=0.1,
+             loosener=default_loosener,
+             zero_buffer=default_zerobuffer,
 
              verbose=False
           ):
@@ -140,8 +142,8 @@ def dirtyfit(correlator,
         tcut = int(Tlat/10.)
         if verbose: print 'tcut set to ',tcut
 
-    if not loosener: loosener=0.3
-    if not zero_buffer: zero_buffer=0.3
+    if not loosener: loosener=default_loosener
+    if not zero_buffer: zero_buffer=defalt_zerobuffer
 
     result = gv.BufferDict()
 
@@ -163,14 +165,22 @@ def dirtyfit(correlator,
     # finding first excited energy
     spectrum = np.mean(
         effective_mass( superav2(excited_correlator) )[ tcut : int(Tlat/2)-tcut ]
-    )
-    spectrum = gv.gvar( spectrum.mean, spectrum.mean - zero_buffer )
+    ) * gv.gvar(1,loosener)
+
+    spectrum = gv.gvar( zero_buffer/(1-spectrum.sdev/spectrum.mean), 
+                        zero_buffer/(spectrum.mean/spectrum.sdev - 1) )
+    # this transforms spectrum to a gvar that is 1 sigma
+    # away from zero_buffer with the same fractional sdev
 
     # finding first excited state amplitude
     spectrum_amps = np.mean(
         amp_superav2( excited_correlator )[ tcut : int(Tlat/2)-tcut ]
-    )
-    spectrum_amps = gv.gvar( spectrum_amps.mean, spectrum_amps.mean - zero_buffer )
+    ) * gv.gvar(1,loosener)
+    spectrum_amps = gv.gvar( zero_buffer/(1-spectrum_amps.sdev/spectrum_amps.mean), 
+                        zero_buffer/(spectrum_amps.mean/spectrum_amps.sdev - 1) )
+    # this transforms spectrum_amps to a gvar that is 1 sigma
+    # away from zero_buffer with the same fractional sdev
+
 
     # building key
     try:
@@ -212,7 +222,7 @@ def dirtyfit_3pt(cdict,
 
                  tcut_3pt=None,
                  tcut_2pt=None,
-                 loosener=0.4,
+                 loosener=default_loosener,
 
                  verbose=False
               ):
