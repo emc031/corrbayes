@@ -26,4 +26,8 @@ If you are also doing fits to 3-point correlators, this can be handled too. All 
 
 The second argument of ``get_prior`` in the above code segment gives the number of points to be used for working out priors (therefore also the number of points shaved off the datset). One is fine in many cases, but if your correlators are noisy (e.g. vector mesons), then cranking this up to 10 or 20 would make the process more stable.
 
+If you find the priors generated are too tight, you can loosen them by passing ``get_prior`` the optional argument ``loosener``. If for example you pass in ``loosener=0.5``, this adds a 50% error onto the priors. The default loosener is 0.3.
+
+This thing should be compatable with *at least* python2.7-3.6.
+
 I should also mention; this only works for single source/sink combinations, e.g. if you're planning on using a matrix of smearings, this won't work properly. If you want to use this with smearings, let me know and I'll adapt the code so it can handle that kind of thing.

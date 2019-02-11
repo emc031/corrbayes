@@ -1,6 +1,8 @@
 
 import sys
 import re
+import random
+from math import isnan
 
 import numpy as np
 from numpy import array
@@ -9,10 +11,7 @@ from gvar import log,exp,evalcov,sqrt
 from gvar.dataset import Dataset,avg_data
 import gvar as gv
 
-import random
-from math import isnan
-
-default_loosener=0.5
+default_loosener=0.3
 default_zerobuffer=0.1
 
 def invertosc(c):
@@ -110,7 +109,7 @@ def safelog(x, verbose=False):
     """
     logx = log(x)
     if isnan(logx.mean):
-        if verbose: print 'CorrBayes.safelog WARNING: invalid argument for log - replacing with log(1.0(9))'
+        if verbose: print('CorrBayes.safelog WARNING: invalid argument for log - replacing with log(1.0(9))')
         return log(gv.gvar(1.0,0.9))
     else: return logx
 ##
@@ -135,12 +134,12 @@ def dirtyfit(correlator,
     e.g. etac.ll is a local-local eta_c correlator.
     """
 
-    if verbose: print 'Performing dirty fit on correlator',key
+    if verbose: print('Performing dirty fit on correlator',key)
 
     Tlat = len(correlator)
     if not tcut: 
         tcut = int(Tlat/10.)
-        if verbose: print 'tcut set to ',tcut
+        if verbose: print('tcut set to ',tcut)
 
     if not loosener: loosener=default_loosener
     if not zero_buffer: zero_buffer=defalt_zerobuffer
@@ -151,13 +150,13 @@ def dirtyfit(correlator,
     mass = avg_data(
         effective_mass( superav2(correlator) )[tcut:int(Tlat/2)-tcut]
     ) * gv.gvar(1,loosener)
-    if verbose: print 'mass = ',mass
+    if verbose: print('mass = ',mass)
 
     # finding ground state amplitude
     amp = avg_data(
         amp_superav2(correlator)[tcut:int(Tlat/2)-tcut]
     ) * gv.gvar(1,loosener)
-    if verbose: print 'amplitude = ',amp
+    if verbose: print('amplitude = ',amp)
 
     # 'excited_correlator' = correlators with ground state term removed
     excited_correlator = [ correlator[t] - amp*exp(-mass*t) for t in range(Tlat) ]
@@ -184,12 +183,12 @@ def dirtyfit(correlator,
 
     # building key
     try:
-        meson = re.findall('^(.*)\...$',key)[0] # M.ll -> M
+        meson = re.findall('^(.*)\.[a-zA-Z][a-zA-Z]$',key)[0] # M.ll -> M
         source = key.split('.')[-1][0] # M.ll -> l
     except IndexError:
-        print 'The key',key,'is in the wrong format, it must look like M.ll'
-        sys.exit(1)
-    if verbose: print 'found meson label = ',meson,', source label = ',source
+        meson = key
+        source=''
+    if verbose: print('found meson label = ',meson,', source label = ',source)
 
     # building dictionary of results
     result.add('log'+meson+':a'+source,
@@ -209,7 +208,7 @@ def dirtyfit(correlator,
 
     result['logdE:o'+meson][0] = safelog( gv.gvar( mass.mean*1.5, mass.mean ) )
 
-    if verbose: print 'result = ',result
+    if verbose: print('result = ',result)
 
     return gv.add_parameter_parentheses(result)
 ##
@@ -245,48 +244,53 @@ def dirtyfit_3pt(cdict,
     Requires 3-point data keys of the format "meson1.J.meson2_T{T}.ss".
     """
 
-    if verbose: print 'Performing dirty fit on correlator',key
+    if verbose: print('Performing dirty fit on correlator',key)
 
-    if not loosener: loosener=0.3
+    if not loosener: loosener=default_loosener
 
     # fetching labels
     try:
-        tag = re.findall('^(.*)_T\d\d?\...$',key)[0] # M1.J.M2_T{T}.ll -> M1.J.M2
+        tag = re.findall('^(.*)_T\d\d?',key)[0] # M1.J.M2_T{T}.ll -> M1.J.M2
         meson1 = re.findall('^(.*)\.'+current,key)[0] # M1.J.M2_T{T}.ll -> M1
-        meson2 = re.findall(current+'\.(.*)_T\d\d?\...$',key)[0] # M1.J.M2_T{T}.ll -> M2
-        source = key.split('.')[-1][0] # M1.J.M2_T{T}.ll -> l
+        meson2 = re.findall(current+'\.(.*)_T\d\d?',key)[0] # M1.J.M2_T{T}.ll -> M2
+
+        source_ = re.findall('_T\d\d?\.[a-zA-Z]([a-zA-Z])$',key) # M1.J.M2_T{T}.ll -> l
+        if len(source_)>0: source = source_[0]
+        else: source=''
+
     except IndexError:
-        print 'The key',key,'is in the wrong format, it must look like M1.J.M2_T{T}.ll'
+        print('The key',key,'is in the wrong format, it must look like M1.J.M2_T{T}.ll')
         sys.exit(1)
 
-    T = int( re.findall('_T(\d\d?)\.',key)[0] ) # M1.J.M2_T{T}.ll -> {T}
+    T = int( re.findall('_T(\d\d?)',key)[0] ) # M1.J.M2_T{T}.ll -> {T}
 
     if verbose:
-        print 'found meson labels =',meson1,',',meson2,', sources =',source
-        print 'found T =',T
+        print('found meson labels =',meson1,',',meson2,', sources =',source)
+        print('found T =',T)
 
     c3 = cdict[key]
 
     if not tcut_3pt: 
         tcut_3pt = int(T/3.)
-        if verbose: print 'tcut_3pt set to',tcut_3pt
+        if verbose: print('tcut_3pt set to',tcut_3pt)
 
     c2 = []; amp = []
     for meson in [meson1,meson2]:
-        if verbose: print 'finding amplitude for',meson,'...'
+        if verbose: print('finding amplitude for',meson,'...')
 
         # finding corresponding 2point correlators
         try:
-            c2.append( cdict[meson+'.'+source+source] )
+            if source=='': c2.append( cdict[meson] )
+            else: c2.append( cdict[meson+'.'+source+source] )
         except KeyError:
-            print 'cannot find correlator for',meson,'to go with',key
+            print('cannot find correlator for',meson,'to go with',key)
             sys.exit(1)
 
         Tlat = len(c2[-1])
 
         if not tcut_2pt:
             tcut_2pt = int(Tlat/10.)
-            if verbose: print 'tcut_2pt set to',tcut_2pt
+            if verbose: print('tcut_2pt set to',tcut_2pt)
 
         # finding ground state amplitude of 2pt correlators
         amp.append(
@@ -295,14 +299,14 @@ def dirtyfit_3pt(cdict,
             ) * gv.gvar(1,loosener)
         )
 
-        if verbose: print 'amp =',amp[-1]
+        if verbose: print('amp =',amp[-1])
 
     # J = approximation of 3-point transition amplitude
     J = avg_data(
         superav2( ratio(c3,c2[0],c2[1]) )[ tcut_3pt : T-tcut_3pt ]
     ) * np.product(amp) * gv.gvar(1,loosener)
 
-    if verbose: print 'J =',J
+    if verbose: print('J =',J)
 
     result = gv.BufferDict()
     for V in [ 'Vnn_', 'Von_', 'Vno_', 'Voo_' ]:
@@ -311,7 +315,7 @@ def dirtyfit_3pt(cdict,
 
     result['Vnn_'+tag][0][0] = J
 
-    if verbose: print 'result =',result
+    if verbose: print('result =',result)
 
     return gv.add_parameter_parentheses(result)
 ##
@@ -342,24 +346,24 @@ def get_prior(dset,
 
     # pick out subset
 
-    subset_index = random.sample( range(0,len(dset[dset.keys()[0]])),
+    subset_index = random.sample( list(range(0,len(dset[list(dset.keys())[0]]))),
                                   Nsubset )
-    if verbose: print 'data point(s) selected for deducing prior:',subset_index
+    if verbose: print('data point(s) selected for deducing prior:',subset_index)
     subset = { key :
                np.mean( [ dset[key][s] for s in subset_index ], axis=0 )
-               for key in dset.keys() } # averaged subset data
+               for key in list(dset.keys()) } # averaged subset data
 
     # removing subset from dataset
-    if verbose: print 'removing these points from dataset...'
+    if verbose: print('removing these points from dataset...')
     for s in subset_index:
-        for key in dset.keys():
+        for key in list(dset.keys()):
             dset[key] = np.concatenate( ( dset[key][:s], dset[key][s+1:] ) )
 
 
     # deduce priors from subset
 
     prior = gv.BufferDict()
-    for key in subset.keys():
+    for key in list(subset.keys()):
         c = subset[key]
 
         # see if this key corresponds to a 3pt correlator, and save current name
@@ -388,7 +392,7 @@ def get_prior(dset,
                                 zero_buffer = zero_buffer,
                                 verbose = verbose )
 
-        for key in cpriors.keys(): prior[key] = cpriors[key]
+        for key in list(cpriors.keys()): prior[key] = cpriors[key]
 
     return ( prior, dset )
 ##
