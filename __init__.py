@@ -49,7 +49,7 @@ def effective_mass(c):
     Returns effective mass of correlator "c"
      m_{eff}(t) = log( C(t) / C(t+1) ).
     """
-    return [ log( sqrt( c[t]/c[t+1] )**2 ) for t in range(len(c)-1)]
+    return [ safelog( safesqrt( c[t]/c[t+1] )**2 ) for t in range(len(c)-1)]
 ##
 
 
@@ -59,7 +59,7 @@ def effective_amp(c):
     a_{eff}(t) = sqrt( C(t) * exp( m_{eff}(t) * t ) )
     """
     m=effective_mass(c)
-    return [ sqrt( c[t] * exp(m[t]*t) ) for t in range(len(c)-1) ]
+    return [ safesqrt( c[t] * exp(m[t]*t) ) for t in range(len(c)-1) ]
 ##
 
 def amp_superav(c): 
@@ -73,7 +73,7 @@ def amp_superav(c):
     """
     c = superav(c)
     m=effective_mass(c)
-    return [ sqrt( c[t] * exp(m[t]*t) * 2/(1+exp(-m[t])) )  for t in range(len(c)-1) ]
+    return [ safesqrt( c[t] * exp(m[t]*t) * 2/(1+exp(-m[t])) )  for t in range(len(c)-1) ]
 ##
 
 def amp_superav2(c): 
@@ -86,7 +86,7 @@ def amp_superav2(c):
     """
     c = superav2(c)
     m = effective_mass(c)
-    return [ sqrt( c[t] * exp(m[t]*t) * 2/(1+(exp(-m[t])+exp(-2*m[t]))/2 ) ) for t in range(len(c)-2) ]
+    return [ safesqrt( c[t] * exp(m[t]*t) * 2/(1+(exp(-m[t])+exp(-2*m[t]))/2 ) ) for t in range(len(c)-2) ]
 ##
 
 
@@ -108,10 +108,22 @@ def safelog(x, verbose=False):
     Takes in gvar x, returns log(x). If x not suitable for log, returns log(1.0(9)).
     """
     logx = log(x)
-    if isnan(logx.mean):
+    if isnan( gv.mean(logx) ):
         if verbose: print('CorrBayes.safelog WARNING: invalid argument for log - replacing with log(1.0(9))')
         return log(gv.gvar(1.0,0.9))
     else: return logx
+##
+
+def safesqrt(x, verbose=False):
+    """
+    Takes in gvar x, returns sqrt(x). If x not suitable for sqrt, returns sqrt(1.0(9)).
+    """
+    try:
+        sqrtx = sqrt(x)
+    except ZeroDivisionError:
+        if verbose: print('CorrBayes.safesqrt WARNING: invalid argument for sqrt - replacing with sqrt(1.0(9))')
+        return sqrt(gv.gvar(1.0,0.9))
+    else: return sqrtx
 ##
 
 
@@ -344,9 +356,12 @@ def get_prior(dset,
     assert type(Nsubset)==int and Nsubset > 0
     assert type(nexp)==int and nexp > 0
 
+    # find smallest correlator range 
+    lcorr = min( [ len(dset[key]) for key in list(dset.keys()) ] )
+
     # pick out subset
 
-    subset_index = random.sample( list(range(0,len(dset[list(dset.keys())[0]]))),
+    subset_index = random.sample( list(range(0,lcorr)),
                                   Nsubset )
     if verbose: print('data point(s) selected for deducing prior:',subset_index)
     subset = { key :
